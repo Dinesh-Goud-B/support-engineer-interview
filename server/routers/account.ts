@@ -81,7 +81,7 @@ export const accountRouter = router({
         fundingSource: z.object({
           type: z.enum(["card", "bank"]),
           accountNumber: z.string(),
-          routingNumber: z.string().optional(),
+          routingNumber: z.string(),
         }),
       })
     )
