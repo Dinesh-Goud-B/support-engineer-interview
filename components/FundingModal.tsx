@@ -33,6 +33,28 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
   const fundingType = watch("fundingType");
   const fundAccountMutation = trpc.account.fundAccount.useMutation();
 
+  function ccValidationCheck(cardNumber: string): boolean {
+    const sanitized = cardNumber.replace(/\s+/g, "");
+    if (!/^\d{13,19}$/.test(sanitized)) return false; // basic length + digits
+
+    let sum = 0;
+    let shouldDouble = false;
+
+    for (let i = sanitized.length - 1; i >= 0; i--) {
+      let digit = parseInt(sanitized[i], 10);
+
+      if (shouldDouble) {
+        digit *= 2;
+        if (digit > 9) digit -= 9;
+      }
+
+      sum += digit;
+      shouldDouble = !shouldDouble;
+    }
+
+    return sum % 10 === 0;
+  }
+
   const onSubmit = async (data: FundingFormData) => {
     setError("");
 
@@ -58,11 +80,15 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg max-w-md w-full p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Fund Your Account</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          Fund Your Account
+        </h3>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Amount</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Amount
+            </label>
             <div className="mt-1 relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <span className="text-gray-500 sm:text-sm">$</span>
@@ -88,18 +114,34 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
                 placeholder="0.00"
               />
             </div>
-            {errors.amount && <p className="mt-1 text-sm text-red-600">{errors.amount.message}</p>}
+            {errors.amount && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.amount.message}
+              </p>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Funding Source</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Funding Source
+            </label>
             <div className="space-y-2">
               <label className="flex items-center">
-                <input {...register("fundingType")} type="radio" value="card" className="mr-2" />
+                <input
+                  {...register("fundingType")}
+                  type="radio"
+                  value="card"
+                  className="mr-2"
+                />
                 <span>Credit/Debit Card</span>
               </label>
               <label className="flex items-center">
-                <input {...register("fundingType")} type="radio" value="bank" className="mr-2" />
+                <input
+                  {...register("fundingType")}
+                  type="radio"
+                  value="bank"
+                  className="mr-2"
+                />
                 <span>Bank Account</span>
               </label>
             </div>
@@ -113,26 +155,42 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
               {...register("accountNumber", {
                 required: `${fundingType === "card" ? "Card" : "Account"} number is required`,
                 pattern: {
-                  value: fundingType === "card" ? /^\d{16}$/ : /^\d+$/,
-                  message: fundingType === "card" ? "Card number must be 16 digits" : "Invalid account number",
+                  value: fundingType === "card" ? /^\d{13,19}$/ : /^\d+$/,
+                  message:
+                    fundingType === "card"
+                      ? "Card number must be 13–19 digits"
+                      : "Invalid account number",
                 },
                 validate: {
                   validCard: (value) => {
                     if (fundingType !== "card") return true;
-                    return value.startsWith("4") || value.startsWith("5") || "Invalid card number";
+
+                    const sanatized = value.replace(/\s+/g, "");
+
+                    if(!ccValidationCheck(sanatized)) return "Invalid Card Number";
+
+                    return true;
                   },
                 },
               })}
               type="text"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
-              placeholder={fundingType === "card" ? "1234567812345678" : "123456789"}
+              placeholder={
+                fundingType === "card" ? "1234567812345678" : "123456789"
+              }
             />
-            {errors.accountNumber && <p className="mt-1 text-sm text-red-600">{errors.accountNumber.message}</p>}
+            {errors.accountNumber && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.accountNumber.message}
+              </p>
+            )}
           </div>
 
           {fundingType === "bank" && (
             <div>
-              <label className="block text-sm font-medium text-gray-700">Routing Number</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Routing Number
+              </label>
               <input
                 {...register("routingNumber", {
                   required: "Routing number is required",
@@ -145,7 +203,11 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
                 placeholder="123456789"
               />
-              {errors.routingNumber && <p className="mt-1 text-sm text-red-600">{errors.routingNumber.message}</p>}
+              {errors.routingNumber && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.routingNumber.message}
+                </p>
+              )}
             </div>
           )}
 
