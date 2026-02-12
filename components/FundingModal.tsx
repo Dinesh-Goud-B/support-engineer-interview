@@ -33,6 +33,7 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
   const fundingType = watch("fundingType");
   const fundAccountMutation = trpc.account.fundAccount.useMutation();
 
+  // method to validate Credit cards
   function ccValidationCheck(cardNumber: string): boolean {
     const sanitized = cardNumber.replace(/\s+/g, "");
     if (!/^\d{13,19}$/.test(sanitized)) return false; // basic length + digits
@@ -101,7 +102,7 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
                     message: "Invalid amount format",
                   },
                   min: {
-                    value: 0.0,
+                    value: 0.01,
                     message: "Amount must be at least $0.01",
                   },
                   max: {
