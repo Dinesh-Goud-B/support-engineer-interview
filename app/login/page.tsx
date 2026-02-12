@@ -5,30 +5,60 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { trpc } from "@/lib/trpc/client";
 import Link from "next/link";
+import Mailcheck from "mailcheck";
 
 type LoginFormData = {
   email: string;
   password: string;
 };
 
+type MailcheckSuggestion = {
+  address: string;
+  domain: string;
+  full: string;
+};
+
 export default function LoginPage() {
   const router = useRouter();
-  const [error, setError] = useState("");
+  const [formError, setFormError] = useState("");
 
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<LoginFormData>();
+
   const loginMutation = trpc.auth.login.useMutation();
 
   const onSubmit = async (data: LoginFormData) => {
+
+    clearErrors("email");
+    setFormError("");
+
+    const email = data.email.trim();
+
+    let typoFound = false;
+
+    Mailcheck.run({
+      email,
+      suggested: function (suggestion: MailcheckSuggestion) {
+        typoFound = true;
+        setError("email", {
+          type: "manual",
+          message: `Did you mean ${suggestion.full}?`,
+        });
+      },
+    });
+
+    if (typoFound) return;
+
     try {
-      setError("");
       await loginMutation.mutateAsync(data);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Invalid credentials");
+      setFormError(err.message || "Invalid credentials");
     }
   };
 
@@ -72,9 +102,9 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {error && (
+          {formError  && (
             <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm text-red-800">{error}</p>
+              <p className="text-sm text-red-800">{formError }</p>
             </div>
           )}
 
