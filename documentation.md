@@ -23,6 +23,7 @@ This document serves as the permanent record of those fixes.
 
 ## Registration Form Validation Issues
 
+## VAL-201: Email Validation Problems
 ## VAL-202: Date of Birth Validation
 ## VAL-203: State Code Validation
 ## VAL-204: Phone Number Format
