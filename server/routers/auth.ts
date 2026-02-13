@@ -131,55 +131,23 @@ export const authRouter = router({
       return { user: { ...user, password: undefined }, sessionToken };
     }),
 
-  logout: publicProcedure.mutation(async ({ ctx }) => {
-    // ✅ ALWAYS extract token - don't rely on ctx.user
-    let token: string | undefined;
+  logout: publicProcedure
+    .input(
+      z.object({
+        userId: z.number(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { userId } = input;
 
-    // Method 1: cookies object (App Router)
-    if ("cookies" in ctx.req && (ctx.req as any).cookies) {
-      token = (ctx.req as any).cookies.session;
-    }
-    // Method 2: Parse cookie header manually (Pages Router)
-    else {
-      const cookieHeader =
-        ctx.req.headers.get?.("cookie") || (ctx.req.headers as any)["cookie"];
-      if (cookieHeader) {
-        const sessionCookie = cookieHeader
-          .split("; ")
-          .find((c: string) => c.startsWith("session="));
-        if (sessionCookie) {
-          token = sessionCookie.split("=")[1];
-        }
-      }
-    }
+      await deleteSessionByUserId(userId);
 
-    console.log("Logout token found:", token ? "YES" : "NO"); // DEBUG
-
-    // Delete session if token exists
-    if (token) {
-      try {
-        const result = await deleteSessionByToken(token);
-        console.log("Session deleted:", result); // DEBUG
-      } catch (error) {
-        console.error("Delete session error:", error); // DEBUG
-      }
-    }
-
-    // Clear cookie
-    if ("setHeader" in ctx.res) {
-      ctx.res.setHeader(
-        "Set-Cookie",
-        `session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`,
-      );
-    } else {
-      (ctx.res as Headers).set(
-        "Set-Cookie",
-        `session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`,
-      );
-    }
-
-    return { success: true, message: "Logged out successfully" };
-  }),
+      return {
+        success: true,
+        message: "All sessions logged out successfully",
+        userId,
+      };
+    }),
 });
 
 // ✅ HELPER FUNCTIONS - Sessions table ONLY
@@ -199,8 +167,10 @@ async function createActiveSession(userId: number): Promise<string> {
   return sessionToken;
 }
 
-async function deleteSessionByToken(token: string): Promise<void> {
-  await db.delete(sessions).where(eq(sessions.token, token));
+async function deleteSessionByUserId(userId: number): Promise<void> {
+  await db
+    .delete(sessions)
+    .where(eq(sessions.userId, userId));
 }
 
 function generateSecureToken(userId: number): string {

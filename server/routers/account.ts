@@ -43,16 +43,16 @@ export const accountRouter = router({
         isUnique = !existing;
       }
 
-      await db.insert(accounts).values({
+     const account =  await db.insert(accounts).values({
         userId: ctx.user.id,
         accountNumber: accountNumber!,
         accountType: input.accountType,
         balance: 0,
         status: "active",
-      });
+      }).returning();
 
-      // Fetch the created account
-      const account = await db.select().from(accounts).where(eq(accounts.accountNumber, accountNumber!)).get();
+      // // Fetch the created account
+      // const account = await db.select().from(accounts).where(eq(accounts.accountNumber, accountNumber!)).get();
 
       return (
         account || {

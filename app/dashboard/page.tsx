@@ -16,9 +16,19 @@ export default function DashboardPage() {
   const { data: accounts, refetch: refetchAccounts } = trpc.account.getAccounts.useQuery();
   const logoutMutation = trpc.auth.logout.useMutation();
 
+  const userId = accounts?.[0]?.userId;
+
   const handleLogout = async () => {
-    await logoutMutation.mutateAsync();
-    router.push("/");
+    if (!userId) {
+      router.push("/");
+      return;
+    }
+
+    // ✅ Pass userId to logout
+    await logoutMutation.mutateAsync({ userId });
+    
+    // Clear all tRPC cache on logout
+    window.location.href = "/"; // Hard refresh to clear everything
   };
 
   const formatCurrency = (amount: number) => {
