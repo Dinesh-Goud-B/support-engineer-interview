@@ -51,9 +51,6 @@ export const accountRouter = router({
         status: "active",
       }).returning();
 
-      // // Fetch the created account
-      // const account = await db.select().from(accounts).where(eq(accounts.accountNumber, accountNumber!)).get();
-
       return (
         account || {
           id: 0,
