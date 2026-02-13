@@ -12,10 +12,52 @@
   --font-mono: var(--font-geist-mono);
 }
 
+input,
+textarea,
+select {
+  background-color: #ffffff !important;
+  color: #171717 !important;
+  -webkit-text-fill-color: #171717 !important;
+  border-color: #d1d5db !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280 !important;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+  }
+
+  input,
+  textarea,
+  select {
+    
+    background-color: #111827 !important;
+    color: #f9fafb !important;
+    -webkit-text-fill-color: #f9fafb !important;
+    border-color: #374151 !important;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #9ca3af !important;
+  }
+
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible,
+  select:focus {
+    background-color: #111827 !important;
+    color: #f9fafb !important;
+    -webkit-text-fill-color: #f9fafb !important;
+    border-color: #3b82f6 !important;
+    outline: 2px solid #3b82f6 !important;
+    outline-offset: 2px;
   }
 }
 
